@@ -14,9 +14,21 @@ import FrostField from "../components/FrostField";
 import Reveal from "../components/Reveal";
 
 const cargoClasses = [
-  { icon: Syringe, label: "Vaccines", range: "2°C – 8°C" },
-  { icon: Droplet, label: "Blood & Plasma", range: "1°C – 6°C" },
-  { icon: Snowflake, label: "Insulin", range: "2°C – 8°C" },
+  {
+    icon: Syringe,
+    label: "Vaccines",
+    range: "2°C – 8°C",
+  },
+  {
+    icon: Droplet,
+    label: "Blood Plasma",
+    range: "2°C – 8°C",
+  },
+  {
+    icon: Snowflake,
+    label: "Medicines",
+    range: "2°C – 8°C",
+  },
 ];
 
 const modules = [
@@ -70,9 +82,9 @@ function Hero() {
           </h1>
 
           <p className="mt-6 text-base md:text-lg text-[var(--muted)] max-w-lg leading-relaxed">
-            CRYOGUARD watches every degree of the cold chain — vaccines, blood,
-            insulin — and forecasts thermal breaches in advance, with a route
-            to the nearest cold hub already mapped out.
+           CRYOGUARD watches every degree of the cold chain — vaccines, blood plasma,
+           and medicines — forecasting thermal breaches before they happen while
+           guiding operators to the nearest cold hub. 
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
