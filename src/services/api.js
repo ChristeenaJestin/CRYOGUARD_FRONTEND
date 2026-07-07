@@ -1,35 +1,58 @@
-const API = "http://127.0.0.1:8000";
+import axios from "axios";
 
-export async function getVehicles() {
-    const res = await fetch(`${API}/api/vehicles/`);
-    return res.json();
-}
+const API = axios.create({
+  baseURL: "https://coldchain-ai-backend.onrender.com",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-export async function getAnalytics() {
-    const res = await fetch(`${API}/api/analytics/`);
-    return res.json();
-}
+// ==========================
+// Vehicles
+// ==========================
+export const getVehicles = async () => {
+  const res = await API.get("/api/vehicles/");
+  return res.data;
+};
 
-export async function getAlerts() {
-    const res = await fetch(`${API}/api/alerts/`);
-    return res.json();
-}
+// ==========================
+// Telemetry
+// ==========================
+export const getTelemetry = async () => {
+  const res = await API.get("/api/telemetry/");
+  return res.data;
+};
 
-export async function getTelemetry() {
-    const res = await fetch(`${API}/api/telemetry/`);
-    return res.json();
-}
+// ==========================
+// Alerts
+// ==========================
+export const getAlerts = async () => {
+  const res = await API.get("/api/alerts/");
+  return res.data;
+};
 
-export async function analyzeVehicle(vehicleId) {
-    const res = await fetch(`${API}/api/ai/analyze`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            vehicle_id: vehicleId,
-        }),
-    });
+// ==========================
+// Analytics
+// ==========================
+export const getAnalytics = async () => {
+  const res = await API.get("/api/analytics/");
+  return res.data;
+};
 
-    return res.json();
-}
+// ==========================
+// Health
+// ==========================
+export const getHealth = async () => {
+  const res = await API.get("/api/health/");
+  return res.data;
+};
+
+// ==========================
+// AI Analysis
+// ==========================
+export const analyzeVehicle = async (data) => {
+  const res = await API.post("/api/ai/analyze", data);
+  return res.data;
+};
+
+export default API;
