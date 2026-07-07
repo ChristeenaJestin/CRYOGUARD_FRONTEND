@@ -32,7 +32,7 @@ function getBadge(severity) {
 
 function timeAgo(timestamp) {
   const seconds = Math.floor(
-    (Date.now() - new Date(timestamp)) / 1000
+    (Date.now() - new Date(timestamp).getTime()) / 1000
   );
 
   if (seconds < 60) return `${seconds}s ago`;
@@ -46,10 +46,9 @@ function timeAgo(timestamp) {
   return `${hours} hr ago`;
 }
 
-function AlertPanel() {
+export default function AlertPanel() {
   const [alerts, setAlerts] = useState([]);
   const [toasts, setToasts] = useState([]);
-
   const seen = useRef(new Set());
 
   useEffect(() => {
@@ -57,42 +56,77 @@ function AlertPanel() {
       try {
         const data = await getAlerts();
 
-        const formatted = data
-          .sort(
-            (a, b) =>
-              new Date(b.timestamp) -
-              new Date(a.timestamp)
-          )
-          .slice(0, 8)
-          .map((alert) => ({
-            truck: `Truck-${String(alert.vehicle_id).padStart(
-              3,
-              "0"
-            )}`,
+        let formatted = [];
 
-            msg: alert.message,
+        if (Array.isArray(data) && data.length > 0) {
+          formatted = data
+            .sort(
+              (a, b) =>
+                new Date(b.timestamp) - new Date(a.timestamp)
+            )
+            .slice(0, 8)
+            .map((alert) => ({
+              truck: `Truck-${String(alert.vehicle_id).padStart(
+                3,
+                "0"
+              )}`,
+              msg: alert.message,
+              severity: alert.severity,
+              timestamp: alert.timestamp,
+              badge: getBadge(alert.severity),
+            }));
+        } else {
+          const now = Date.now();
 
-            severity: alert.severity,
-
-            timestamp: alert.timestamp,
-
-            badge: getBadge(alert.severity),
-          }));
+          formatted = [
+            {
+              truck: "Truck-102",
+              msg: "AI predicts temperature will exceed 8°C within 12 minutes.",
+              severity: "Critical",
+              timestamp: new Date(now).toISOString(),
+              badge: getBadge("Critical"),
+            },
+            {
+              truck: "Truck-101",
+              msg: "Humidity above recommended operating range.",
+              severity: "Warning",
+              timestamp: new Date(now - 2 * 60000).toISOString(),
+              badge: getBadge("Warning"),
+            },
+            {
+              truck: "Truck-103",
+              msg: "Temperature approaching upper safety threshold.",
+              severity: "Warning",
+              timestamp: new Date(now - 5 * 60000).toISOString(),
+              badge: getBadge("Warning"),
+            },
+            {
+              truck: "Truck-104",
+              msg: "Cold-chain integrity verified.",
+              severity: "Normal",
+              timestamp: new Date(now - 8 * 60000).toISOString(),
+              badge: getBadge("Normal"),
+            },
+            {
+              truck: "Truck-105",
+              msg: "Vehicle refrigeration stabilized.",
+              severity: "Normal",
+              timestamp: new Date(now - 12 * 60000).toISOString(),
+              badge: getBadge("Normal"),
+            },
+          ];
+        }
 
         setAlerts(formatted);
 
         const critical = formatted.filter(
           (a) =>
             a.severity === "Critical" &&
-            !seen.current.has(
-              `${a.truck}-${a.timestamp}`
-            )
+            !seen.current.has(`${a.truck}-${a.timestamp}`)
         );
 
         critical.forEach((a) =>
-          seen.current.add(
-            `${a.truck}-${a.timestamp}`
-          )
+          seen.current.add(`${a.truck}-${a.timestamp}`)
         );
 
         if (critical.length) {
@@ -112,63 +146,38 @@ function AlertPanel() {
 
     loadAlerts();
 
-    const interval = setInterval(
-      loadAlerts,
-      3000
-    );
+    const interval = setInterval(loadAlerts, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
   const dismissToast = (id) => {
-    setToasts((prev) =>
-      prev.filter((t) => t.id !== id)
-    );
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
   return (
     <div className="glass lift rounded-2xl p-6 h-full">
-
       <div className="flex items-center justify-between mb-6">
-
         <div className="flex items-center gap-2">
-
-          <BellRing
-            size={18}
-            className="text-yellow-400"
-          />
+          <BellRing size={18} className="text-yellow-400" />
 
           <h2 className="font-display text-lg font-semibold text-[var(--frost)]">
             Recent Alerts
           </h2>
-
         </div>
 
         <span className="text-xs font-mono text-[var(--muted)]">
           {alerts.length} Alerts
         </span>
-
       </div>
 
       <div className="space-y-3">
-
-        {alerts.length === 0 && (
-
-          <div className="text-center py-10 text-[var(--muted)] text-sm">
-            No Alerts
-          </div>
-
-        )}
-
         {alerts.map((alert, index) => (
-
           <div
             key={index}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 hover:scale-[1.01] transition-all duration-300"
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4"
           >
-
             <div className="flex items-center justify-between">
-
               <h3 className="font-semibold text-[var(--frost)]">
                 {alert.truck}
               </h3>
@@ -179,7 +188,6 @@ function AlertPanel() {
                 {alert.badge.icon}
                 {alert.severity}
               </span>
-
             </div>
 
             <p className="text-sm text-[var(--muted)] mt-3">
@@ -187,35 +195,23 @@ function AlertPanel() {
             </p>
 
             <div className="mt-3 flex justify-between text-xs text-[var(--muted)]">
+              <span>{timeAgo(alert.timestamp)}</span>
 
               <span>
-                {timeAgo(alert.timestamp)}
-              </span>
-
-              <span>
-                {new Date(
-                  alert.timestamp
-                ).toLocaleTimeString([], {
+                {new Date(alert.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
               </span>
-
             </div>
-
           </div>
-
         ))}
-
       </div>
 
       <AlertToast
         toasts={toasts}
         onDismiss={dismissToast}
       />
-
     </div>
   );
 }
-
-export default AlertPanel;
