@@ -12,14 +12,51 @@ function FleetTable() {
   const [trucks, setTrucks] = useState([]);
 
   useEffect(() => {
-    getVehicles().then(setTrucks);
 
-    const interval = setInterval(() => {
-      getVehicles().then(setTrucks);
-    }, 5000);
+  async function loadVehicles() {
 
-    return () => clearInterval(interval);
-  }, []);
+    try {
+
+      const data = await getVehicles();
+
+      const formatted = data.map((truck) => {
+
+        let status = "Safe";
+
+        if (truck.temperature >= 8) {
+          status = "Critical";
+        } else if (truck.temperature >= 6) {
+          status = "Warning";
+        }
+
+        return {
+          ...truck,
+
+          temp: Number(truck.temperature).toFixed(1),
+
+          cargo: truck.cargo ?? "Vaccines",
+
+          eta: truck.eta ?? "45 min",
+
+          status,
+        };
+      });
+
+      setTrucks(formatted);
+
+    } catch (err) {
+      console.error(err);
+    }
+
+  }
+
+  loadVehicles();
+
+  const interval = setInterval(loadVehicles, 3000);
+
+  return () => clearInterval(interval);
+
+}, []);
 
   return (
     <div className="glass lift rounded-2xl p-6">
@@ -66,10 +103,10 @@ function FleetTable() {
 
             {trucks.map((truck) => (
               <tr
-                key={truck.id}
+                key={truck.vehicle}
                 className="border-b border-[var(--border-soft)] last:border-0 h-14 hover:bg-[var(--surface-raised)] transition-colors"
               >
-                <td className="font-mono text-[var(--frost)] pr-4">{truck.id}</td>
+                <td className="font-mono text-[var(--frost)] pr-4">{truck.vehicle}</td>
                 <td className="text-[var(--muted)] pr-4">{truck.cargo ?? "—"}</td>
                 <td className="font-mono text-[var(--frost)] pr-4">
                   {truck.temp !== undefined ? `${truck.temp}°C` : "—"}

@@ -8,15 +8,56 @@ import AIRiskPanel from "../components/AIRiskPanel";
 import AlertPanel from "../components/AlertPanel";
 import FrostField from "../components/FrostField";
 import Reveal from "../components/Reveal";
-import { getDashboard } from "../services/api";
+import { getAnalytics } from "../services/api";
 
 function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
 
   useEffect(() => {
-    getDashboard().then(setDashboard);
-  }, []);
+  async function loadDashboard() {
+    try {
+      const data = await getAnalytics();
 
+      setDashboard({
+        fleetHealth: Math.max(
+          0,
+          Math.min(
+            100,
+            100 - Math.round((data.criticalAlerts || 0) * 5)
+          )
+        ),
+
+        averageTemp: data.averageTemperature,
+
+        alerts:
+          (data.criticalAlerts || 0) +
+          (data.warningAlerts || 0),
+
+        // Placeholder until we add actual hub data
+        coldHubs: 12,
+
+        activeVehicles: data.activeVehicles,
+
+        highestTemperature: data.highestTemperature,
+
+        telemetryRecords: data.telemetryRecords,
+
+        criticalAlerts: data.criticalAlerts,
+
+        warningAlerts: data.warningAlerts,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  loadDashboard();
+
+  const interval = setInterval(loadDashboard, 3000);
+
+  return () => clearInterval(interval);
+
+}, []);
   return (
     <main className="relative page-transition">
       <FrostField />

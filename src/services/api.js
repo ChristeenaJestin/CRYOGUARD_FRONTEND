@@ -5,8 +5,8 @@ export async function getVehicles() {
     return res.json();
 }
 
-export async function getDashboard() {
-    const res = await fetch(`${API}/api/dashboard`);
+export async function getAnalytics() {
+    const res = await fetch(`${API}/api/analytics`);
     return res.json();
 }
 
@@ -15,7 +15,3 @@ export async function getAlerts() {
     return res.json();
 }
 
-export async function getAnalytics() {
-    const res = await fetch(`${API}/api/analytics`);
-    return res.json();
-}

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -8,14 +9,8 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Thermometer } from "lucide-react";
+import { getTelemetry } from "../services/api";
 
-const data = [
-  { time: "09", temp: 4.5 },
-  { time: "10", temp: 5.0 },
-  { time: "11", temp: 5.8 },
-  { time: "12", temp: 6.2 },
-  { time: "13", temp: 5.9 },
-];
 
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -30,6 +25,49 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 function TemperatureChart() {
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+
+    async function loadTelemetry() {
+
+      try {
+
+        const telemetry = await getTelemetry();
+
+        const formatted = telemetry
+          .slice(0, 20)
+          .reverse()
+          .map((item) => ({
+
+            time: new Date(item.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+
+            temp: Number(item.temperature).toFixed(1),
+
+          }));
+
+        setData(formatted);
+
+      } catch (err) {
+
+        console.error(err);
+
+      }
+
+    }
+
+    loadTelemetry();
+
+    const interval = setInterval(loadTelemetry, 3000);
+
+    return () => clearInterval(interval);
+
+  }, []);
+
   return (
     <div className="glass lift rounded-2xl p-6 h-[400px] flex flex-col">
       <div className="flex items-center gap-2 mb-4">
@@ -41,8 +79,15 @@ function TemperatureChart() {
 
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-            <CartesianGrid stroke="var(--border-soft)" vertical={false} />
+          <LineChart
+            data={data}
+            margin={{ top: 8, right: 12, left: -12, bottom: 0 }}
+          >
+            <CartesianGrid
+              stroke="var(--border-soft)"
+              vertical={false}
+            />
+
             <XAxis
               dataKey="time"
               stroke="var(--muted)"
@@ -50,26 +95,39 @@ function TemperatureChart() {
               tickLine={false}
               axisLine={{ stroke: "var(--border)" }}
             />
+
             <YAxis
               stroke="var(--muted)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
             />
+
             <Tooltip content={<ChartTooltip />} />
+
             <Line
               type="monotone"
               dataKey="temp"
               stroke="var(--ice)"
               strokeWidth={3}
-              dot={{ r: 4, fill: "var(--ice)", strokeWidth: 0 }}
-              activeDot={{ r: 6, fill: "var(--frost)", stroke: "var(--ice)", strokeWidth: 2 }}
+              dot={{
+                r: 4,
+                fill: "var(--ice)",
+                strokeWidth: 0,
+              }}
+              activeDot={{
+                r: 6,
+                fill: "var(--frost)",
+                stroke: "var(--ice)",
+                strokeWidth: 2,
+              }}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
+
 }
 
 export default TemperatureChart;

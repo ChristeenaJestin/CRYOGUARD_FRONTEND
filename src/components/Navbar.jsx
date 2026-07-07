@@ -34,7 +34,7 @@ function Navbar() {
           <Logo size={30} />
           <div className="leading-tight">
             <h1 className="font-display text-lg md:text-xl font-semibold tracking-tight text-[var(--frost)]">
-              FROST<span className="text-[var(--ice)]">AI</span>
+              CRYO<span className="text-[var(--ice)]">GUARD</span>
             </h1>
             <p className="hidden sm:block font-mono text-[10px] tracking-[0.18em] uppercase text-[var(--muted)]">
               Predictive Cold-Chain Intelligence

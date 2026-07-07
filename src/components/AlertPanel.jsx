@@ -10,24 +10,82 @@ function AlertPanel() {
   const [toasts, setToasts] = useState([]);
   const seen = useRef(new Set());
 
-  useEffect(() => {
-    getAlerts().then((data) => {
-      setAlerts(data);
+ useEffect(() => {
 
-      // Surface anything critical as a toast the first time it's seen.
-      // Additive only — the fetch itself is unchanged from before.
-      const critical = data.filter(
-        (a) => a.color?.includes("red") && !seen.current.has(`${a.truck}-${a.time}`)
+  async function loadAlerts() {
+
+    try {
+
+      const data = await getAlerts();
+
+      const formatted = data.map((alert) => ({
+
+        truck: `Truck-${String(alert.vehicle_id).padStart(3, "0")}`,
+
+        msg: alert.message,
+
+        color:
+          alert.severity === "Critical"
+            ? "text-[var(--critical)]"
+            : "text-[var(--warn)]",
+
+        time: new Date(alert.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+
+        severity: alert.severity,
+
+      }));
+
+      setAlerts(formatted);
+
+      // Toasts for new critical alerts
+      const critical = formatted.filter(
+        (a) =>
+          a.severity === "Critical" &&
+          !seen.current.has(`${a.truck}-${a.time}`)
       );
-      critical.forEach((a) => seen.current.add(`${a.truck}-${a.time}`));
+
+      critical.forEach((a) =>
+        seen.current.add(`${a.truck}-${a.time}`)
+      );
+
       if (critical.length) {
+
         setToasts((prev) => [
+
           ...prev,
-          ...critical.map((a) => ({ id: ++toastId, truck: a.truck, msg: a.msg })),
+
+          ...critical.map((a) => ({
+
+            id: ++toastId,
+
+            truck: a.truck,
+
+            msg: a.msg,
+
+          })),
+
         ]);
+
       }
-    });
-  }, []);
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+
+  }
+
+  loadAlerts();
+
+  const interval = setInterval(loadAlerts, 3000);
+
+  return () => clearInterval(interval);
+
+}, []);
 
   const dismissToast = (id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));

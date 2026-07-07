@@ -70,7 +70,7 @@ function Hero() {
           </h1>
 
           <p className="mt-6 text-base md:text-lg text-[var(--muted)] max-w-lg leading-relaxed">
-            FROST AI watches every degree of the cold chain — vaccines, blood,
+            CRYOGUARD watches every degree of the cold chain — vaccines, blood,
             insulin — and forecasts thermal breaches in advance, with a route
             to the nearest cold hub already mapped out.
           </p>
