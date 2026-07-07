@@ -1,66 +1,84 @@
-import Navbar from "../components/Navbar";
+import { useEffect, useState } from "react";
+import { Activity, Thermometer, BellRing, Warehouse } from "lucide-react";
 import StatCard from "../components/StatCard";
 import FleetMap from "../components/FleetMap";
 import TemperatureChart from "../components/TemperatureChart";
 import FleetTable from "../components/FleetTable";
 import AIRiskPanel from "../components/AIRiskPanel";
 import AlertPanel from "../components/AlertPanel";
+import FrostField from "../components/FrostField";
+import Reveal from "../components/Reveal";
+import { getDashboard } from "../services/api";
 
 function Dashboard() {
+  const [dashboard, setDashboard] = useState(null);
+
+  useEffect(() => {
+    getDashboard().then(setDashboard);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#07131F] text-white">
+    <main className="relative page-transition">
+      <FrostField />
 
-      <Navbar />
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-6 px-8 py-6">
-        <StatCard
-          title="Fleet Health"
-          value="96%"
-          color="text-green-400"
-        />
-
-        <StatCard
-          title="Average Temp"
-          value="5.4°C"
-          color="text-cyan-400"
-        />
-
-        <StatCard
-          title="Alerts"
-          value="3"
-          color="text-red-400"
-        />
-
-        <StatCard
-          title="Cold Hubs"
-          value="17"
-          color="text-blue-400"
-        />
-      </div>
-
-      {/* Map + Chart */}
-      <div className="grid grid-cols-3 gap-6 px-8">
-        <div className="col-span-2">
-          <FleetMap />
+      <div className="relative max-w-7xl mx-auto px-6 md:px-8 py-8">
+        <div className="mb-8">
+          <p className="font-mono text-[11px] tracking-widest uppercase text-[var(--ice)] mb-1.5">
+            Live console
+          </p>
+          <h1 className="font-display text-2xl md:text-3xl font-semibold text-[var(--frost)]">
+            Fleet Overview
+          </h1>
         </div>
 
-        <TemperatureChart />
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+          <StatCard
+            title="Fleet Health"
+            value={`${dashboard?.fleetHealth ?? "--"}%`}
+            color="text-[var(--safe)]"
+            icon={Activity}
+          />
+          <StatCard
+            title="Average Temp"
+            value={`${dashboard?.averageTemp ?? "--"}°C`}
+            color="text-[var(--ice)]"
+            icon={Thermometer}
+          />
+          <StatCard
+            title="Alerts"
+            value={dashboard?.alerts ?? "--"}
+            color="text-[var(--critical)]"
+            icon={BellRing}
+          />
+          <StatCard
+            title="Cold Hubs"
+            value={dashboard?.coldHubs ?? "--"}
+            color="text-[var(--ice-soft)]"
+            icon={Warehouse}
+          />
+        </div>
+
+        {/* Map + Chart */}
+        <Reveal className="grid lg:grid-cols-3 gap-6 mb-6">
+          <div className="lg:col-span-2">
+            <FleetMap />
+          </div>
+          <TemperatureChart />
+        </Reveal>
+
+        {/* Fleet Table */}
+        <Reveal className="mb-6" delay={80}>
+          <FleetTable />
+        </Reveal>
+
+        {/* AI + Alerts */}
+        <Reveal as="div" className="grid lg:grid-cols-2 gap-6 pb-8" delay={120}>
+          <AIRiskPanel />
+          <AlertPanel />
+        </Reveal>
       </div>
-
-      {/* Fleet Table */}
-      <div className="px-8 py-6">
-        <FleetTable />
-      </div>
-      <div className="grid grid-cols-2 gap-6 px-8 pb-8">
-
-    <AIRiskPanel />
-
-    <AlertPanel />
-
-</div>
-
-    </div>
+    </main>
   );
 }
 
