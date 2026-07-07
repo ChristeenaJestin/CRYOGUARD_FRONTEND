@@ -33,12 +33,11 @@ function FleetTable() {
           ...truck,
 
           temp: Number(truck.temperature).toFixed(1),
-
-          cargo: truck.cargo ?? "Vaccines",
+          cargo: truck.cargo || "Unknown",
 
           eta: truck.eta ?? "45 min",
 
-          status,
+           status: truck.status,
         };
       });
 

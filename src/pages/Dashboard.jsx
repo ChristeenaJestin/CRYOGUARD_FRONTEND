@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Activity, Thermometer, BellRing, Warehouse } from "lucide-react";
+import {
+  Activity,
+  Thermometer,
+  BellRing,
+  Warehouse,
+} from "lucide-react";
+
 import StatCard from "../components/StatCard";
 import FleetMap from "../components/FleetMap";
 import TemperatureChart from "../components/TemperatureChart";
@@ -8,56 +14,50 @@ import AIRiskPanel from "../components/AIRiskPanel";
 import AlertPanel from "../components/AlertPanel";
 import FrostField from "../components/FrostField";
 import Reveal from "../components/Reveal";
+
 import { getAnalytics } from "../services/api";
 
 function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
 
   useEffect(() => {
-  async function loadDashboard() {
-    try {
-      const data = await getAnalytics();
+    async function loadDashboard() {
+      try {
+        const data = await getAnalytics();
 
-      setDashboard({
-        fleetHealth: Math.max(
-          0,
-          Math.min(
-            100,
-            100 - Math.round((data.criticalAlerts || 0) * 5)
-          )
-        ),
+        setDashboard({
+          fleetHealth: data.fleetHealth,
 
-        averageTemp: data.averageTemperature,
+          averageTemp: data.averageTemperature,
 
-        alerts:
-          (data.criticalAlerts || 0) +
-          (data.warningAlerts || 0),
+          alerts:
+            (data.criticalAlerts || 0) +
+            (data.warningAlerts || 0),
 
-        // Placeholder until we add actual hub data
-        coldHubs: 12,
+          coldHubs: 12,
 
-        activeVehicles: data.activeVehicles,
+          activeVehicles: data.activeVehicles,
 
-        highestTemperature: data.highestTemperature,
+          highestTemperature: data.highestTemperature,
 
-        telemetryRecords: data.telemetryRecords,
+          telemetryRecords: data.telemetryRecords,
 
-        criticalAlerts: data.criticalAlerts,
+          criticalAlerts: data.criticalAlerts,
 
-        warningAlerts: data.warningAlerts,
-      });
-    } catch (err) {
-      console.error(err);
+          warningAlerts: data.warningAlerts,
+        });
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }
 
-  loadDashboard();
+    loadDashboard();
 
-  const interval = setInterval(loadDashboard, 3000);
+    const interval = setInterval(loadDashboard, 3000);
 
-  return () => clearInterval(interval);
+    return () => clearInterval(interval);
+  }, []);
 
-}, []);
   return (
     <main className="relative page-transition">
       <FrostField />
@@ -65,56 +65,71 @@ function Dashboard() {
       <div className="relative max-w-7xl mx-auto px-6 md:px-8 py-8">
         <div className="mb-8">
           <p className="font-mono text-[11px] tracking-widest uppercase text-[var(--ice)] mb-1.5">
-            Live console
+            Live Console
           </p>
+
           <h1 className="font-display text-2xl md:text-3xl font-semibold text-[var(--frost)]">
             Fleet Overview
           </h1>
         </div>
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-          <StatCard
-            title="Fleet Health"
-            value={`${dashboard?.fleetHealth ?? "--"}%`}
-            color="text-[var(--safe)]"
-            icon={Activity}
-          />
-          <StatCard
-            title="Average Temp"
-            value={`${dashboard?.averageTemp ?? "--"}°C`}
-            color="text-[var(--ice)]"
-            icon={Thermometer}
-          />
-          <StatCard
-            title="Alerts"
-            value={dashboard?.alerts ?? "--"}
-            color="text-[var(--critical)]"
-            icon={BellRing}
-          />
-          <StatCard
-            title="Cold Hubs"
-            value={dashboard?.coldHubs ?? "--"}
-            color="text-[var(--ice-soft)]"
-            icon={Warehouse}
-          />
-        </div>
 
-        {/* Map + Chart */}
+  <StatCard
+    title="Fleet Health"
+    value={`${dashboard?.fleetHealth ?? "--"}%`}
+    subtitle="Overall Fleet Status"
+    progress={dashboard?.fleetHealth}
+    color="text-green-400"
+    icon={Activity}
+  />
+
+  <StatCard
+    title="Average Temp"
+    value={`${dashboard?.averageTemp ?? "--"}°C`}
+    subtitle="Target: 4°C – 6°C"
+    progress={75}
+    color="text-cyan-400"
+    icon={Thermometer}
+  />
+
+  <StatCard
+    title="Alerts"
+    value={dashboard?.alerts ?? "--"}
+    subtitle="Active Monitoring"
+    progress={100}
+    color="text-red-400"
+    icon={BellRing}
+  />
+
+  <StatCard
+    title="Cold Hubs"
+    value={dashboard?.coldHubs ?? "--"}
+    subtitle="Operational"
+    progress={100}
+    color="text-blue-400"
+    icon={Warehouse}
+  />
+
+</div>
+
         <Reveal className="grid lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
             <FleetMap />
           </div>
+
           <TemperatureChart />
         </Reveal>
 
-        {/* Fleet Table */}
         <Reveal className="mb-6" delay={80}>
           <FleetTable />
         </Reveal>
 
-        {/* AI + Alerts */}
-        <Reveal as="div" className="grid lg:grid-cols-2 gap-6 pb-8" delay={120}>
+        <Reveal
+          as="div"
+          className="grid lg:grid-cols-2 gap-6 pb-8"
+          delay={120}
+        >
           <AIRiskPanel />
           <AlertPanel />
         </Reveal>
